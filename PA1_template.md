@@ -16,24 +16,33 @@ date: The date on which the measurement was taken in YYYY-MM-DD format
 interval: Identifier for the 5-minute interval in which measurement was taken
 The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.
 
+The first step in the analysis is downloading and preprocessing of the raw data.
+
 ## Loading and preprocessing the data
+
+The forementioned dataset is downloaded, unzipped and stored as variable "actdata". The variable "time" is also defined to be used later in the report.
 
 
 ```r
 download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", destfile="activity.zip")
 unzip("activity.zip")
 actdata <- read.csv("./activity.csv")
-start <- as.POSIXct(x = "0:00", format = "%H:%M")
-time <- seq(from = start, by = "5 mins", length.out = 288)
+time <- seq(from = as.POSIXct(x = "0:00", format = "%H:%M"), by = "5 mins",
+            length.out = 288)
 ```
 
 ## What is mean total number of steps taken per day?
 
+The first questions to be answered are: what are the total steps per day and put the results in a histogram that shows the distribution of the number of steps in the dataset.
+
 
 ```r
 library(ggplot2)
-daystepstotal <- aggregate(actdata$steps, list(actdata$date), sum)
-daystepstotal$Group.1 <- as.Date(daystepstotal$Group.1, "%Y-%m-%d")
+daystepstotal <- aggregate(actdata$steps, 
+                           list(actdata$date), 
+                           sum)
+daystepstotal$Group.1 <- as.Date(daystepstotal$Group.1,
+                                 "%Y-%m-%d")
 ggplot(daystepstotal,
        aes(x=x)) +
        geom_histogram(binwidth=1500,
@@ -49,14 +58,17 @@ ggplot(daystepstotal,
 ![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)\
 
 ```r
-meansteps <- mean(daystepstotal$x,
-                  na.rm = TRUE)
-mediansteps <- median(daystepstotal$x,
+meansteps <- format(mean(daystepstotal$x,
+                        na.rm = TRUE), scientific = FALSE)
+mediansteps <- median(as.integer(daystepstotal$x),
                       na.rm = TRUE)
 ```
 
+Next, the mean and median amount of total steps per day are calculated, which are 10766.19 and 10765 respectively.
 
 ## What is the average daily activity pattern?
+
+Another interesting bit of information to known is the distribution of the number of steps during the day. The next graph shows the distribution of the average number of steps during a day for each interval.
 
 
 ```r
@@ -75,13 +87,26 @@ plot(y = daystepsmean$x,
 ```r
 mostactive <- subset(daystepsmean,
                      x == max(daystepsmean$x))
+mostactive <- sprintf("%04d", mostactive[,1])
+mostactive <- format(strptime(mostactive, format="%H%M"), format = "%H:%M")
 ```
+
+You can see that at 08:35 in the morning, the subject is on average most active.
 
 ## Imputing missing values
 
 
 ```r
 NAs <- sum(is.na(actdata$steps))
+perc_NAs <- format((NAs/nrow(actdata)*100), digits = 3)
+```
+
+Missing values can bias the results generated from a dataset. In this dataset there are 2304 missing values, which is 13.1% of the total set.
+
+To include the missing values, we replaced the missing values with the overall average of the specific interval. Below the histogram is shown similar to the previous histogram but now with the imputed dataset containing no missing values.
+
+
+```r
 actdata_impute <- actdata
 actdata_impute$steps[is.na(actdata_impute$steps)] <-   as.integer(daystepsmean$x)
 daystepstotal_impute <- aggregate(actdata_impute$steps,
@@ -95,14 +120,20 @@ ggplot(daystepstotal_impute,
        ggtitle("Histogram of total steps/day (imputed NA's)")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)\
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)\
 
 ```r
-meansteps_impute <- mean(daystepstotal_impute$x, na.rm = TRUE)
-mediansteps_impute <- median(as.integer(daystepstotal_impute$x), na.rm = TRUE)
+meansteps_impute<- format(mean(daystepstotal_impute$x,
+                        na.rm = TRUE), scientific = FALSE)
+mediansteps_impute<- median(as.integer(daystepstotal_impute$x), 
+                            na.rm = TRUE)
 ```
 
+Subsequently, the mean and median amount of total steps per day are calculated, which are 10749.77 and 10641 respectively.
+
 ## Are there differences in activity patterns between weekdays and weekends?
+
+Lastly, we analysed whether the activity patterns of weekdays and weekends are different. 
 
 
 ```r
@@ -140,5 +171,8 @@ plot(y = weekendstepsmean$x,
      main = "Weekend")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)\
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png)\
 
+Both patterns are similar, however small differences are evident. For example, in the weekends activity starts later and is less high and it continues later in the evening.
+
+This concludes the analysis of the dataset as a part of the assignement in "Reproducable research"
