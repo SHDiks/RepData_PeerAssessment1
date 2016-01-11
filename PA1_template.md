@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 Introduction
 
@@ -23,7 +18,8 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 
 ## Loading and preprocessing the data
 
-```{r}
+
+```r
 download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip", destfile="activity.zip")
 unzip("activity.zip")
 actdata <- read.csv("./activity.csv")
@@ -33,7 +29,8 @@ time <- seq(from = start, by = "5 mins", length.out = 288)
 
 ## What is mean total number of steps taken per day?
 
-```{r}
+
+```r
 library(ggplot2)
 daystepstotal <- aggregate(actdata$steps, list(actdata$date), sum)
 daystepstotal$Group.1 <- as.Date(daystepstotal$Group.1, "%Y-%m-%d")
@@ -43,18 +40,26 @@ ggplot(daystepstotal,
                       position='identity') +
        ylab("Frequency") + xlab("# steps/day") +
   ggtitle("Histogram of total steps/day")
+```
 
+```
+## Warning: Removed 8 rows containing non-finite values (stat_bin).
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)\
+
+```r
 meansteps <- mean(daystepstotal$x,
                   na.rm = TRUE)
 mediansteps <- median(daystepstotal$x,
                       na.rm = TRUE)
-
 ```
 
 
 ## What is the average daily activity pattern?
 
-```{r}
+
+```r
 daystepsmean <- aggregate(actdata$steps,
                           list(actdata$interval),
                           mean, na.rm = T)
@@ -63,13 +68,19 @@ plot(y = daystepsmean$x,
      type = "l",
      xlab = "Time ",
      ylab = "# steps per interval")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)\
+
+```r
 mostactive <- subset(daystepsmean,
                      x == max(daystepsmean$x))
 ```
 
 ## Imputing missing values
 
-```{r}
+
+```r
 NAs <- sum(is.na(actdata$steps))
 actdata_impute <- actdata
 actdata_impute$steps[is.na(actdata_impute$steps)] <-   as.integer(daystepsmean$x)
@@ -82,14 +93,19 @@ ggplot(daystepstotal_impute,
        geom_histogram(binwidth=1500, position='identity') +
        ylab("Frequency") + xlab("# steps/day") +
        ggtitle("Histogram of total steps/day (imputed NA's)")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)\
+
+```r
 meansteps_impute <- mean(daystepstotal_impute$x, na.rm = TRUE)
 mediansteps_impute <- median(as.integer(daystepstotal_impute$x), na.rm = TRUE)
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r}
+
+```r
 actdata_impute$date1 <- weekdays(as.Date(actdata_impute$date))
 actdata_impute_weekend <- subset(actdata_impute,
                                  date1 == "Saturday" | date1 == "Sunday")
@@ -123,4 +139,6 @@ plot(y = weekendstepsmean$x,
      ylab = "# steps per interval",
      main = "Weekend")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)\
 
