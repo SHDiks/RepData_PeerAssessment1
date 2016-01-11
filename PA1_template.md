@@ -78,7 +78,7 @@ daystepsmean <- aggregate(actdata$steps,
 plot(y = daystepsmean$x,
      x = time,
      type = "l",
-     xlab = "Time ",
+     xlab = "Time (h:m)",
      ylab = "# steps per interval")
 ```
 
@@ -87,11 +87,10 @@ plot(y = daystepsmean$x,
 ```r
 mostactive <- subset(daystepsmean,
                      x == max(daystepsmean$x))
-mostactive <- sprintf("%04d", mostactive[,1])
-mostactive <- format(strptime(mostactive, format="%H%M"), format = "%H:%M")
+mostactive <- format(strptime(sprintf("%04d", mostactive[,1]), format="%H%M"), format = "%H:%M")
 ```
 
-You can see that at 08:35 in the morning, the subject is on average most active.
+You can see that at 08:35 , the subject is, on average, the most active.
 
 ## Imputing missing values
 
@@ -154,9 +153,6 @@ actdata_impute_weekday$date1 <- "weekday"
 actdata_impute_weekend$date1 <- "weekend"
 actdata_impute_necessary <- rbind(actdata_impute_weekday,
                                   actdata_impute_weekend)
-
-start <- as.POSIXct(x = "0:00", format = "%H:%M")
-time <- seq(from = start, by = "5 mins", length.out = 288)
 
 plot <- par(mfrow=c(2,1), mar = c(2,4,1.5,1))
 plot(y = weekdaystepsmean$x,
